@@ -149,7 +149,7 @@ exports.open = function(port, callback) {
 	r.readEn = true; r.queryLoop = queryLoop.bind(r);
 	//Initialize Serial Port:
 	r.port = initSerial(r, port, callback);
-	return robot;
+	return r;
 }
 
 //----------- Create 2 Status Control -----------
