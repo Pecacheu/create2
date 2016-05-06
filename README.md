@@ -11,7 +11,7 @@ Lists all ports available on the computer. The only parameter to the callback fu
 
 - **create.prompt(callback)**
 
-Shows a diologue listing available ports and asks the user to select one. While in the diologue, the user can quit the application by typing `quit` or `exit`.
+Shows a dialogue listing available ports and asks the user to select one. While in the dialogue, the user can quit the application by typing `quit` or `exit`.
 
 - **robot = create.open(port, callback=null)**
 
@@ -32,7 +32,7 @@ For all functions with parameters, setting any parameter to `null` will use it's
 - **robot.stop()** Stops communication with the robot. You'll have to send a `start` again to resume communication.
 - **robot.safe()** Sets the mode to *SAFE*. You have complete control of the robot unless a safety sensor is triggered.
 - **robot.full()** Sets the mode to *FULL*. You have complete control of the robot even if safety sensors are triggered.
-- **robot.power()** This commnad fully powers down Roomba. Communication is no longer possible.
+- **robot.power()** This command fully powers down Roomba. Communication is no longer possible.
 
 **Note:** *SAFE* mode is identical to *FULL* mode, with the exception that if a safety sensor (such as a cliff sensor) is triggered, the robot reverts back to *PASSIVE* mode.
 
@@ -57,11 +57,11 @@ Drives each motor at requested velocity (`-500 to 500, mm/s`).
 
 - **robot.drivePower(left, right)** - Value Storage: **robot.motorL**, **robot.motorR**
 
-Drives motors at requested power level (`-255 to 255, PWM`). This commnad drives the motors at a constant power instead of a constant speed. This means that the exact speed you're traveling could vary slightly depending on battery level and robot payload. If exact speed is not important, it's better to use this commnad.
+Drives motors at requested power level (`-255 to 255, PWM`). This command drives the motors at a constant power instead of a constant speed. This means that the exact speed you're traveling could vary slightly depending on battery level and robot payload. If exact speed is not important, it's better to use this command.
 
 - **robot.setMotor(motor, power)** - Value Storage: **robot.motorBrush**, **robot.motorSide**, **robot.motorBin**
 
-Sets the power (`-255 to 255, PWM`) of the desierd motor.
+Sets the power (`-255 to 255, PWM`) of the desired motor.
 
 Here are the available motors on the Create 2:
 
@@ -79,7 +79,7 @@ Controls the Roomba's various face LEDs. On the Create 2, the error led is a red
 
 - **robot.showText(text, interval, scrollIn=false, complete=null)** - Value Storage: **TBD**
 
-Scroll any length of text across Roomba's 7-segment display, which can only show 4 characters at a time. Interval controls the delay, in miliseconds, between updates. **Text and interval are required parameters.**
+Scroll any length of text across Roomba's 7-segment display, which can only show 4 characters at a time. Interval controls the delay, in milliseconds, between updates. **Text and interval are required parameters.**
 
 If scrollIn is `true`, the text scrolls in and out until only the last character is visible.
 
@@ -129,9 +129,70 @@ Plays a song with the given song id.
 
 ## Robot Sensors:
 
-###### Coming soon...
+There are several different ways for your code to respond to input from the robot. The best one to use varies depending on the application. The most common method is the onChange callback.
+
+#### robot.onChange:
+
+This callback is called whenever any input from the robot changes. It's only parameter, `changed`, is an object containing properties with the names of any sensor values that have changed. The values of theses properties are not important, and are always `true`, regardless of the actual value of the sensor. This allows you to do the following:
+
+<pre>
+//React to left bumper sensor:
+robot.onChange = function(changed) {
+  if(changed.bumpLeft && robot.data.bumpLeft == true) {
+    //BumpLeft just changed, and the new value is true!
+  }
+};
+</pre>
+
+#### robot.data:
+
+Now, here's where the real magic happens. This object contains up-to-date values of all available sensors, and can be read synchronously at any time. It's updated just before callbacks are called, so you can get current sensor values inside any callback.
+
+#### robot.on:
+
+This is an empty object that you can populate with callbacks. Each callback is called only when the value of it's sensor changes. The name of the callback determines what sensor it reacts to. These callbacks should have one parameter, `value`, which contains the current value of the sensor. Going back to our left bumper example:
+
+<pre>
+//React to left bumper sensor using robot.on:
+robot.on.bumpLeft = function(value) {
+  if(value == true) {
+    //BumpLeft just changed, and the new value is true!
+  }
+};
+</pre>
+
+#### robot.onMotion:
+
+This callback, which has no parameters, is for special sensors that output data differently. The values of these sensors is usually 0, but when action happens, they momentarily change to a positive or negative number, representing the relative *change* in value. Because of this, we call them **delta** properties. Delta properties need a different callback because when their value isn't 0, it represents change, even if the sensor's output hasn't changed since the last frame. Here's a simple example of how to keep track of a delta value:
+
+<pre>
+var angle = 0;
+robot.onMotion = function() {
+  angle += robot.delta.angle;
+  console.log("Angle:", angle);
+}
+</pre>
+
+#### robot.delta:
+
+Similar to `robot.data`, but contains the current values of delta properties.
+
+## List Of Sensors:
+
+- bumpLeft
+- bumpRight
+- dropLeft
+- dropRight
+- wall
+- cliffLeft
+- cliffFrontLeft
+- cliffFrontRight
+- cliffRight
+
+###### Details & More Sensors Coming soon...
 
 ## Examples:
 To use examples, move them to an empty folder and install `create2` and `chalk` to `./node_modules`.
 - `test.js` Allows you to send commands to the robot from your terminal.
 - `dock.js` Example of sensor reading and autonomous control of Roomba.
+- You can see `dock.js` in action [on YouTube](http://youtu.be/lE6Q39KX6Ag).

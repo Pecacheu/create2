@@ -274,7 +274,7 @@ function setSong(id, notes) {
 }
 
 function play(id) {
-	if(song!=null) this.song = id&255;
+	if(id!=null) this.song = id&255;
 	this.write([141,this.song||0]);
 }
 
@@ -304,13 +304,10 @@ function onSensorData(data) {
 		if(itm[1]) value = !!(value & itm[1]); else if(itm[2]) value = (itm[3]?
 		fromSignedInt16:fromUnsignedInt16)(value, data[itm[2]]);
 		else if(itm[3]) value = fromSignedInt8(value);
-		if(this.data[index] != value) {
-			this.data[index] = value; changed[index] = true;
-			if(this.on[index]) this.on[index](value);
-		}
+		if(this.data[index] != value) { this.data[index] = value; changed[index] = true; }
 	}
 	//Parse Motion Data:
-	for(var i=0,l=mKeys.length; i<l; i++) {
+	for(i=0,l=mKeys.length; i<l; i++) {
 		var index = mKeys[i], itm = motionParse[index], value = data[itm[0]];
 		if(itm[1]) value = !!(value & itm[1]); else if(itm[2]) value = (itm[3]?
 		fromSignedInt16:fromUnsignedInt16)(value, data[itm[2]]);
@@ -318,11 +315,12 @@ function onSensorData(data) {
 		this.delta[index] = value; if(value) mTrig = true;
 	}
 	
-	//if(Object.keys(changed).length) console.log(this.data);
+	//* Fixed bug where not all robot.data values were up to date in robot.on callbacks.
 	
-	//Trigger Callback:
+	//Trigger Callbacks:
 	if(this.onChange && Object.keys(changed).length) this.onChange(changed);
-	if(this.onMotion && mTrig) this.onMotion();
+	if(this.onMotion && mTrig) this.onMotion(); var o = Object.keys(this.on);
+	for(i=0,l=o.length; i<l; i++) if(changed[o[i]]) this.on[o[i]](this.data[o[i]]);
 	
 	//Debug Stuff:
 	if(exports.debug) {
