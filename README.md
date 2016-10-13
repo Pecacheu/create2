@@ -3,6 +3,8 @@
 
 Install with `npm install create2`, then include with `create = require('create2')`
 
+Check it out [on YouTube](http://youtu.be/lE6Q39KX6Ag)!
+
 ## Library Functions:
 
 - **create.ports(callback)**
