@@ -85,9 +85,9 @@ exports.prompt = function(callback) {
 
 //Init iRobot Serial:
 function initSerial(robot, port, callback) {
-	serial = new Serial.SerialPort(port, {
+	serial = new Serial(port, {
 		//Defaults for Roomba Open Interface:
-		baudrate:115200, dataBits:8,
+		baudRate:115200, dataBits:8,
 		parity:'none', stopBits:1,
 		flowControl:false
 	});
@@ -314,14 +314,14 @@ function onSensorData(data) {
 		else if(itm[3]) value = fromSignedInt8(value);
 		this.delta[index] = value; if(value) mTrig = true;
 	}
-	
+
 	//* Fixed bug where not all robot.data values were up to date in robot.on callbacks.
-	
+
 	//Trigger Callbacks:
 	if(this.onChange && Object.keys(changed).length) this.onChange(changed);
 	if(this.onMotion && mTrig) this.onMotion(); var o = Object.keys(this.on);
 	for(i=0,l=o.length; i<l; i++) if(changed[o[i]]) this.on[o[i]](this.data[o[i]]);
-	
+
 	//Debug Stuff:
 	if(exports.debug) {
 		if(exports.inputMode == 2 || exports.inputMode == null) {
