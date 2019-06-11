@@ -77,7 +77,11 @@ Here are the available motors on the Create 2:
 
 - **robot.setLeds(spot, dock, error, dirt, cleanColor, cleanIntensity)** - Value Storage: **robot.spotLed**, **robot.dockLed**, **robot.errorLed**, **robot.spotLed**, **robot.dockLed**, **robot.dirtLed**, **robot.cleanClr**, **robot.cleanInt**
 
-Controls the Roomba's various face LEDs. On the Create 2, the error led is a red exclamation point **(!)**, the dirt led is a blue dot, and the button LEDs (spot and dock) are green. The clean button has a bicolor (red/green) LED, which is controlled with cleanColor (`0 to 255, Green to Red`) and cleanIntensity (`0 to 255, Brightness`). All other LEDs can only be turned on and off (`TRUE or FALSE`).
+Controls the Roomba's various face LEDs. On the Create 2, the error led is a red exclamation point **(!)**, the dirt led is a blue dot, and the button LEDs (spot and dock) are green. The clean button has a bicolor (red/green) LED, which is controlled with cleanColor (`0 to 255, Green to Red`) and cleanIntensity (`0 to 255, Brightness`). All other LEDs can only be turned on and off (`true or false`).
+
+- **robot.setFaceLeds(sun, mon, tue, wed, thr, fri, sat, am, pm, colon)** - Value Storage: **robot.mon**, **robot.tue**, etc...
+
+Sets the display's day-of-the-week, AM, PM, and colon LEDs (all red). LEDs can only be turned on and off (`true or false`).
 
 - **robot.showText(text, interval, scrollIn=false, complete=null)** - Value Storage: **TBD**
 
@@ -91,7 +95,7 @@ But setting scrollIn to `true` will make the message scroll fully in and out bef
 
 The optional complete callback is called when the text finishes scrolling, and has no parameters. Note that due to the nature of 7-segment displays, not all characters will display well. Characters are not case-sensitive.
 
-- **robot.setDigitsRaw(d1, d2, d3, d4)** - Value Storage: **robot.digit1**, **robot.digit2**, **robot.digit3**, **robot.digit4**
+- **robot.setDigitsRaw(d1, d2, d3, d4)** - Value Storage: **robot.d1**, **robot.d2**, **robot.d3**, **robot.d4**
 
 Allows you to control the individual segments of Roomba's display. Each parameter is an array of 7 bits (`EX. [false,true,true,false,true,true,false]`), each of which represents a segment of the display as shown in this table:
 
@@ -101,14 +105,6 @@ Allows you to control the individual segments of Roomba's display. Each paramete
 |   | G |   |
 | E |   | C |
 |   | D |   |
-
-- **robot.setTimeLeds(am, pm, colon)** - Value Storage: **robot.amLed**, **robot.pmLed**, **robot.colonLed**
-
-Sets the display's AM, PM, and colon LEDs (all red). LEDs can only be turned on and off (`TRUE or FALSE`).
-
-- **robot.setDayLeds(sun, mon, tue, wed, thr, fri, sat)** - Value Storage: **robot.mon**, **robot.tue**, etc...
-
-Sets the display's day-of-the-week LEDs (all red), which are positioned above the display in an arc-shape. LEDs can only be turned on and off (`TRUE or FALSE`).
 
 - **robot.setSong(id, notes)** - Value Storage: **N/A**
 
@@ -181,17 +177,116 @@ Similar to `robot.data`, but contains the current values of delta properties.
 
 ## List Of Sensors:
 
-- bumpLeft
-- bumpRight
-- dropLeft
-- dropRight
-- wall
-- cliffLeft
-- cliffFrontLeft
-- cliffFrontRight
-- cliffRight
+### Bump & Wheel Drop
+- **bool** bumpLeft
+- **bool** bumpRight
+- **bool** dropLeft
+- **bool** dropRight
 
-###### Details & More Sensors Coming soon...
+### Cliff Sensors
+- **bool** cliffLeft
+- **bool** cliffFrontLeft
+- **bool** cliffFrontRight
+- **bool** cliffRight
+
+###### Analog Signal (0-4095)
+- **uint16** cliffLeftRaw
+- **uint16** cliffFrontLeftRaw
+- **uint16** cliffFrontRightRaw
+- **uint16** cliffRightRaw
+
+### IR Proximity Sensors
+- **byte** irBump _(Full sensor array data)_
+- **bool** irBumpLeft
+- **bool** irBumpFrontLeft
+- **bool** irBumpCenterLeft
+- **bool** irBumpCenterRight
+- **bool** irBumpFrontRight
+- **bool** irBumpRight
+
+###### Analog Signal (0-4095)
+- **uint16** proxLeft
+- **uint16** proxFrontLeft
+- **uint16** proxCenterLeft
+- **uint16** proxCenterRight
+- **uint16** proxFrontRight
+- **uint16** proxRight
+
+### Other Sensors
+- **bool** casterMotion
+- **bool** wall _(Maybe for side brush?)_
+- **bool** virtualWall _(Needs testing)_
+- **uint16** wallRaw _(Usually from 0 to 150?)_
+- **byte** airQuality _(Dirt sensor, normally 0)_
+
+### Buttons
+- **bool** clean
+- **bool** spot
+- **bool** dock
+- **bool** day
+- **bool** hour
+- **bool** minute
+- **bool** schedule _(Not working)_
+- **bool** clock _(Not working)_
+
+### Wheel Encoders
+###### Encoder Clicks, 0-65535 (Overflows in both directions)
+- **uint16** encoderLeft
+- **uint16** encoderRight
+
+### Motor Current
+- **int16** currentLeft
+- **int16** currentRight
+- **int16** currentBrush
+- **int16** currentSide
+
+### Overcurrent
+- **bool** overloadBrush
+- **bool** overloadSide
+- **bool** overloadLeft
+- **bool** overloadRight
+
+### IR Receivers
+###### Uses proprietary protocol (0 when no IR signal)
+- **byte** irOmni
+- **byte** irLeft
+- **byte** irRight
+
+### Speaker
+- **byte** songNumber
+- **bool** playing
+
+### Power Source
+###### Indicates available power sources, not charging status.
+- **bool** charger
+- **bool** docked
+
+### Battery
+- **byte** chargeState _(0-5, see table)_
+- **uint16** voltage _(mV, usually ~15000)_
+- **int16** current _(mA, usually ~-200)_
+- **int8** temperature _(°C)_
+- **uint16** charge _(mAh)_
+- **uint16** maxCharge _(mAh, should be ~2600)_
+
+| # | Charge State |
+|:-:|:-:|
+| 0 | Not charging |
+| 1 | Reconditioning Charging |
+| 2 | Full charging |
+| 3 | Trickle charging |
+| 4 | Waiting |
+| 5 | Charging Fault Condition |
+
+### Open Interface Mode
+- **byte** mode _(0-3, see table)_
+
+| # | OI Mode |
+|:-:|:-:|
+| 0 | Off |
+| 1 | Passive |
+| 2 | Safe |
+| 3 | Full |
 
 ## Examples:
 To use examples, move them to an empty folder and install `create2` and `chalk` to `./node_modules`.
