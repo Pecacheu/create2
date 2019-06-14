@@ -1,6 +1,6 @@
 {
   "name": "create2",
-  "version": "1.3",
+  "version": "1.3.0",
   "description": "iRobot Create 2 Open Interface for Node.js",
   "main": "index.js",
   "repository": "git://github.com/pecacheu/create2.git",
