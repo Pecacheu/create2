@@ -57,7 +57,7 @@ const create = require('create2');
 let robot, run=1, drRun=0, drAngle=0, angle=0;
 
 function start() {
-	create.prompt((p) => {create.open(p,main)});
+	create.prompt(main);
 }
 
 //Main Program:

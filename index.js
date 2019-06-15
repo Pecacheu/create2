@@ -3,7 +3,8 @@
 
 "use strict";
 
-const chalk = require('chalk'), Serial = require('serialport');
+const chalk = require('chalk'), Serial = require('serialport'), stream = require('stream');
+exports.serial = {baudRate:115200, dataBits:8, parity:'none', stopBits:1, flowControl:0};
 
 //----------- Helpful Functions -----------
 
@@ -53,19 +54,17 @@ exports.prompt = (cb) => {
 		console.log(chalk.yellow("-----------------------------------\n"));
 		console.log(chalk.cyan("Please enter the port you want to use:"));
 		//Wait for user input:
-		function onPortSelectInput(newPort) {
-			newPort = newPort.replace(/\n/g, ""); newPort = newPort.replace(/\r/g, "");
-			let portExists=0;
-			for(let i=0; i < ports.length; i++) if(newPort == ports[i].comName) { portExists=1; break; }
-			if(!portExists && Number(newPort) && ports[Number(newPort)-1]) {
-				newPort = ports[Number(newPort)-1].comName; portExists=1;
+		function onPortSelectInput(port) {
+			port=port.replace(/\n/g, "").replace(/\r/g, ""); let portExists=0;
+			for(let i=0; i < ports.length; i++) if(port == ports[i].comName) { portExists=1; break; }
+			if(!portExists && Number(port) && ports[Number(port)-1]) {
+				port = ports[Number(port)-1].comName; portExists=1;
 			}
 			if(portExists) {
-				console.log(chalk.bgGreen.black("Listening on port \""+newPort+"\""));
-				process.stdin.removeListener('data', onPortSelectInput);
-				console.log(); cb(newPort);
+				console.log(chalk.bgGreen.black("Listening on port \""+port+"\"")+"\n");
+				process.stdin.removeListener('data', onPortSelectInput); exports.open(port,cb);
 			} else {
-				console.log(chalk.bgRed.black("Port \""+newPort+"\" does not exist!"));
+				console.log(chalk.bgRed.black("Port \""+port+"\" does not exist!"));
 			}
 		}
 		process.stdin.resume();
@@ -82,36 +81,18 @@ exports.prompt = (cb) => {
 	});
 }
 
-//Init iRobot Serial:
-function initSerial(r, port, cb) {
-	r.port = new Serial(port, {
-		baudRate:115200, dataBits:8, parity:'none', stopBits:1, flowControl:0
-	});
-	r.port.once('open', () => {
-		//Send Start Command:
-		r.write(128); setSensorRead(1,r);
-		//Listen to Incoming Data:
-		r.port.on('data', (data) => {
-			//Combine Previous Data:
-			if(r.inBuf) r.inBuf = Buffer.concat([r.inBuf,data]); else r.inBuf = data;
-			//Data Parsing Timer:
-			if(r.inTmr) clearTimeout(r.inTmr); r.inTmr = setTimeout(() => {
-				if(r.dataParser && r.inBuf && r.inBuf.length >= 80) { r.dataParser(r.inBuf); r.inBuf = r.inTmr = null; }
-				if(exports.debug && r.inBuf) console.log(chalk.bold.green("Packet Miss ["+r.inBuf.length+"]"));
-			},8);
-		});
-		if(cb) cb(r);
-	});
-}
-
 //Open iRobot Serial Port:
 exports.open = (port, cb) => {
-	let r = new Robot(); initSerial(r,port,cb); return r;
+	let r = new Robot();
+	if(typeof port == 'string') r.port = new Serial(port, exports.serial);
+	else if(port instanceof stream.Duplex) r.port = port; else { cb(); return; }
+	r.port.once('open', () => { r.start(); r.port.on('data', r.read); if(cb) cb(r); });
+	r.port.on('error', () => {});
 }
 
-function Robot() {
-	this.data = {}; this.delta = {}; this.on = {};
-}
+function Robot() { this.data = {}, this.delta = {}, this.on = {}; }
+Object.defineProperty(Robot.prototype,'readEnable',{get(){return r._rEn},set(e){setSensorRead(e,this)}});
+Robot.prototype.close = function() { setSensorRead(0,this); this.port.close(); }
 
 Robot.prototype.write = function() {
 	for(let i=0,l=arguments.length,a; i<l; i++) {
@@ -124,7 +105,15 @@ Robot.prototype.write = function() {
 	}
 }
 
-Object.defineProperty(Robot.prototype,'readEnable',{get(){return r._rEn},set(e){setSensorRead(e,this)}});
+Robot.prototype.read = function(data) {
+	//Combine Previous Data:
+	let r=this; if(r.inBuf) r.inBuf = Buffer.concat([r.inBuf,data]); else r.inBuf = data;
+	//Data Parsing Timer:
+	if(r.inTmr) clearTimeout(r.inTmr); r.inTmr = setTimeout(() => {
+		if(r.dataParser && r.inBuf && r.inBuf.length >= 80) { r.dataParser(r.inBuf); r.inBuf = r.inTmr = null; }
+		if(exports.debug && r.inBuf) console.log(chalk.bold.green("Packet Miss ["+r.inBuf.length+"]"));
+	},8);
+}
 
 //----------- Create 2 Status Control -----------
 

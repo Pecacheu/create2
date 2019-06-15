@@ -9,15 +9,17 @@ Check it out [on YouTube](http://youtu.be/lE6Q39KX6Ag)!
 
 - **create.ports(callback)**
 
-Lists all ports available on the computer. The only parameter to the callback function is an array of ports. If no ports were found, the array will be empty.
+Lists all ports available on the computer. The only parameter to *callback* is an array of ports. If no ports were found, the array will be empty.
 
 - **create.prompt(callback)**
 
-Shows a dialogue listing available ports and asks the user to select one. While in the dialogue, the user can quit the application by typing `quit` or `exit`.
+Shows a dialogue listing available ports and asks the user to select one, before automatically calling **create.open**. While in the dialogue, the user can quit the application by typing `quit` or `exit`.
 
-- **robot = create.open(port, callback=null)**
+- **create.open(port, callback=null)**
 
-Opens the port to a robot object. The optional callback will be called when the robot is ready to receive commands. The callback's parameter will be the robot object (which is also returned by the function).
+Opens the port to a robot object. An optional *callback* will be called when the robot is ready to receive commands. The callback's parameter will be the new *Robot* object.
+
+Optionally, the *port* argument can be Duplex node stream instead of a port, allowing you to use a custom library to communicate with the robot. If you need the Roomba's default serial settings, use the macro **create.serial**, which is initialized to `{baudRate:115200, dataBits:8, parity:'none', stopBits:1, flowControl:0}`
 
 - **create.debug** and **create.inputMode**
 
@@ -34,7 +36,8 @@ For all functions with parameters, setting any parameter to `null` will use it's
 - **robot.stop()** Stops communication with the robot. You'll have to send a `start` again to resume communication.
 - **robot.safe()** Sets the mode to *SAFE*. You have complete control of the robot unless a safety sensor is triggered.
 - **robot.full()** Sets the mode to *FULL*. You have complete control of the robot even if safety sensors are triggered.
-- **robot.power()** This command fully powers down Roomba. Communication is no longer possible.
+- **robot.power()** This command powers down the Roomba, however it does not close the serial connection.
+- **robot.close()** Close the serial connection to the robot. It is recommended to put the robot back in *PASSIVE* mode first.
 
 **Note:** *SAFE* mode is identical to *FULL* mode, with the exception that if a safety sensor (such as a cliff sensor) is triggered, the robot reverts back to *PASSIVE* mode.
 

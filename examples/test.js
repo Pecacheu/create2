@@ -19,7 +19,7 @@ let robot, input = 0;
 function start() {
 	create.debug = true; //Data will be logged to terminal.
 	create.inputMode = 0; //Only relevant when debug is on.
-	create.prompt((p) => {create.open(p,main)});
+	create.prompt(main);
 }
 
 //todo dock.js: replace 'var' with 'let'; use '=>'
