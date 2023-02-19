@@ -1,5 +1,4 @@
-/*<legalstuff> This work is licensed under a GNU General Public License, v3.0. Visit http://gnu.org/licenses/gpl-3.0-standalone.html for details. </legalstuff>*/
-//Create2 TEST Demo. Copyright (©) 2016, Pecacheu (Bryce Peterson).
+//Create2 TEST Demo, 2016 Pecacheu. GNU GPL v3
 
 //Allows you to send commands over the OI.
 

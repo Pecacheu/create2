@@ -1,5 +1,4 @@
-/*<legalstuff> This work is licensed under a GNU General Public License, v3.0. Visit http://gnu.org/licenses/gpl-3.0-standalone.html for details. </legalstuff>*/
-//Create2 DOCK Demo. Copyright (©) 2016, Pecacheu (Bryce Peterson).
+//Create2 DOCK Demo, 2016 Pecacheu. GNU GPL v3
 
 //NOTE: If you want to learn more about Roomba's modes, as well as the various
 //commands and sensors, I recommend reading the official OI docs available here:
