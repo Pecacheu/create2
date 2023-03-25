@@ -37,16 +37,16 @@ function fromSignedInt8(byte) {
 
 //Get A List Of Serial Ports:
 exports.ports = (cb) => {
-	Serial.list((err, ports) => { cb(err?[]:ports); });
+	Serial.list().then(ports => cb(ports), err => cb([]));
 }
 
 //Asks you to select a serial port:
 exports.prompt = (cb) => {
 	//List available ports in command line:
-	Serial.list((err, ports) => {
+	Serial.list().then(ports => {
 		console.log(chalk.yellow("--------- Available Ports ---------"));
 		for(let i=0; i < ports.length; i++) {
-			let commString = "["+(i+1)+"] "+ports[i].comName;
+			let commString = "["+(i+1)+"] "+ports[i].path;
 			if(ports[i].manufacturer) commString += (", Brand = '"+ports[i].manufacturer+"'");
 			console.log(commString);
 		}
@@ -55,9 +55,9 @@ exports.prompt = (cb) => {
 		//Wait for user input:
 		function onPortSelectInput(port) {
 			port=port.replace(/\n/g, "").replace(/\r/g, ""); let portExists=0;
-			for(let i=0; i < ports.length; i++) if(port == ports[i].comName) { portExists=1; break; }
+			for(let i=0; i < ports.length; i++) if(port == ports[i].path) { portExists=1; break; }
 			if(!portExists && Number(port) && ports[Number(port)-1]) {
-				port = ports[Number(port)-1].comName; portExists=1;
+				port = ports[Number(port)-1].path; portExists=1;
 			}
 			if(portExists) {
 				console.log(chalk.bgGreen.black("Listening on port \""+port+"\"")+"\n");
